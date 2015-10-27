@@ -15,12 +15,49 @@
         .attr('width', width)
         .attr('height', height);
 
-    var ocean = svg.append("defs").append("radialGradient")
-        .attr("id", "ocean")
-        .attr("cx", "35%")
-        .attr("cy", "20%");
-    ocean.append("stop").attr("offset", "5%").attr("stop-color", "#ddf");
-    ocean.append("stop").attr("offset", "100%").attr("stop-color", "#9ab");
+    var shadow = svg.append('defs').append('radialGradient')
+        .attr({
+            'id': 'shadow',
+            'cx': '50%',
+            'cy': '50%'
+        });
+    shadow.append('stop')
+        .attr({
+            'offset': '10%',
+            'stop-color': '#aaa',
+            'stop-opacity': '0.89'
+        });
+    shadow.append('stop')
+        .attr({
+            'offset': '100%',
+            'stop-color': '#777',
+            'stop-opacity': '0'
+        });
+
+    svg.append('ellipse')
+        .attr({
+            'cx': 880,
+            'cy': 835,
+            'rx': projection.scale() * .80,
+            'ry': projection.scale() * .20,
+            'stroke-width': 0
+        })
+        .style('fill', 'url(#shadow)');
+
+    var ocean = svg.append('defs').append('radialGradient')
+        .attr('id', 'ocean')
+        .attr('cx', '35%')
+        .attr('cy', '20%');
+    ocean.append('stop')
+        .attr({
+            'offset': '5%',
+            'stop-color': '#def'
+        });
+    ocean.append("stop")
+        .attr({
+            'offset': '100%',
+            'stop-color': "#9ac"
+        });
 
     svg.append('path')
         .datum({ type: 'Sphere' })
