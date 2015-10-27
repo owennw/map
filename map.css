@@ -3,11 +3,27 @@
   stroke-width: 0.3;
 }
 
-.water {
-  fill: rgba(72, 156, 212, 0.97);
+.graticule {
+  fill: none;
+  stroke: black;
+  stroke-width: .5;
+  opacity: .2;
 }
 
-.country:nth-child(6n+1) {
+.city-label {
+  font: 8px sans-serif;
+  opacity: .5;
+}
+
+.city, .city-label {
+  fill: black;
+}
+
+.water {
+  fill: rgba(72, 156, 212, 0.83);
+}
+
+/*.country:nth-child(6n+1) {
   fill: rgba(243, 163, 50, 0.9);
 }
 
@@ -29,4 +45,9 @@
 
 .country:nth-child(6n) {
   fill: rgba(174, 88, 107, 0.9);
+}*/
+
+.country {
+  fill: rgb(117, 87, 57);
+  opacity: .8;
 }
