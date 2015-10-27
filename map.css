@@ -11,8 +11,9 @@
 }
 
 .city-label {
-  font: 8px sans-serif;
+  font: 10px sans-serif;
   opacity: .5;
+  font-weight: 900;
 }
 
 .city, .city-label {
@@ -20,34 +21,10 @@
 }
 
 .water {
-  fill: rgba(72, 156, 212, 0.83);
+  fill: rgba(131, 189, 228, 0.77);
 }
-
-/*.country:nth-child(6n+1) {
-  fill: rgba(243, 163, 50, 0.9);
-}
-
-.country:nth-child(6n+2) {
-  fill: rgba(57, 202, 29, 0.9);        
-}
-
-.country:nth-child(6n+3) {
-  fill: rgba(232, 74, 74, 0.9);        
-}                      
-                       
-.country:nth-child(6n+4) {
-  fill: rgba(239, 241, 66, 0.9);        
-}                      
-                       
-.country:nth-child(6n+5) {
-  fill: rgba(196, 38, 242, 0.90);        
-}                      
-
-.country:nth-child(6n) {
-  fill: rgba(174, 88, 107, 0.9);
-}*/
 
 .country {
   fill: rgb(117, 87, 57);
-  opacity: .8;
+  opacity: .7;
 }
