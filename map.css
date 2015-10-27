@@ -20,10 +20,6 @@
   fill: black;
 }
 
-.water {
-  fill: rgba(131, 189, 228, 0.77);
-}
-
 .country {
   fill: rgb(117, 87, 57);
   opacity: .7;

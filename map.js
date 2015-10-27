@@ -15,10 +15,17 @@
         .attr('width', width)
         .attr('height', height);
 
+    var ocean = svg.append("defs").append("radialGradient")
+        .attr("id", "ocean")
+        .attr("cx", "35%")
+        .attr("cy", "20%");
+    ocean.append("stop").attr("offset", "5%").attr("stop-color", "#ddf");
+    ocean.append("stop").attr("offset", "100%").attr("stop-color", "#9ab");
+
     svg.append('path')
         .datum({ type: 'Sphere' })
-        .attr('class', 'water')
-        .attr('d', path);
+        .attr('d', path)
+        .style('fill', 'url(#ocean)');
 
     d3.json('world_fewer.json', function(error, world) {
         if (error) {
