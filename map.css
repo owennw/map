@@ -12,8 +12,7 @@
 
 .city-label {
   font: 10px sans-serif;
-  opacity: .5;
-  font-weight: 900;
+  opacity: 0.8;
 }
 
 .city, .city-label {
