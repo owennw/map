@@ -10,11 +10,12 @@
         if (error) {
             return console.error(error);
         }
-        
+
         var subunits = topojson.feature(world, world.objects.subunits),
             projection = d3.geo.orthographic()
                 .scale(300)
-                .translate([width / 2, height / 2]);
+                .translate([width / 2, height / 2])
+                .rotate([0, 0, -23.4]); // yaw, pitch, roll
 
         svg.append('path')
             .datum(subunits)
