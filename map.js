@@ -1,7 +1,7 @@
 ﻿(function() {
     var width = 1600,
         height = 900,
-        axialTilt = -23.4;
+        axialTilt = 0;//-23.4;
 
     var projection = d3.geo.orthographic()
         .translate([width / 2, height / 2])
@@ -10,6 +10,7 @@
         .rotate([0, 0, axialTilt]); // yaw, pitch, roll
     var path = d3.geo.path().projection(projection).pointRadius(1.5);
     var graticule = d3.geo.graticule();
+    var tooltip = d3.select('body').append('div').attr('class', 'tooltip');
 
     var svg = d3.select('body').append('svg')
         .attr('width', width)
@@ -81,7 +82,22 @@
             allCountries.enter()
                 .append('path')
                 .attr('d', path)
-                .attr('class', function(d) { return 'country ' + d.id; });
+                .attr('class', function(d) { return 'country ' + d.id; })
+                .on('mouseover', function(d) {
+                    tooltip.text(d.properties.name)
+                        .style('left', (d3.event.pageX + 7) + 'px')
+                        .style('top', (d3.event.pagyY - 15) + 'px')
+                        .style('display', 'block')
+                        .style('opacity', 1);
+                })
+                .on('mouseout', function(d) {
+                    tooltip
+                        .style('opacity', 0)
+                        .style('display', 'none');
+                })
+                .on('mousemove', function(d) {
+                    tooltip.style('left', (d3.event.pageX + 7) + 'px').style('top', (d3.event.pageY - 15) + 'px');
+                });
 
             var capitalGroups = allCapitals.enter().append('g');
             capitalGroups.append('path')
@@ -97,17 +113,20 @@
                     var local = projection(d.geometry.coordinates);
                     x = local[0];
                     y = local[1];
-                    var offset = x < width / 2 ? -5 : 5;
-                    return 'translate(' + (x + offset) + ',' + (y - 2) + ')rotate(' + -axialTilt + ')';
+                    var offset = x < width / 2 ? -7 : 7;
+                    return 'translate(' + (x + offset) + ',' + (y - 4) + ')rotate(' + -axialTilt + ')';
                 })
-                .attr('text-anchor', function (d) {
+                .attr('text-anchor', function(d) {
+                    // globe left -> text left
+                    // globe middle - text middle
+                    // globe right -> text right
                     var x = projection(d.geometry.coordinates)[0];
-                    return x < width / 2 - 20 ? 'end' :
-                        x < width / 2 + 20 ? 'middle' :
+                    return x < width / 2 - 100 ? 'end' :
+                        x < width / 2 + 100 ? 'middle' :
                         'start';
                 })
                 .style('display', function(d) {
-                    // This prevent the cities not visible on the globe from appearing
+                    // This prevents the cities not visible on the globe from appearing
                     var d = arc.distance({ source: d.geometry.coordinates, target: centerPos });
 
                     // 1.57 is ~ half of pi

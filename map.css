@@ -23,3 +23,20 @@
   fill: rgb(117, 87, 57);
   opacity: .7;
 }
+
+.country:hover {
+  fill: #dc4a29;
+  stroke-width: 1px;
+}
+
+.tooltip {
+  position: absolute;
+  display: none;
+  background: #fff;
+  padding: 3px;
+  text-align: left;
+  border: solid #ccc 1px;
+  color: #666;
+  font-size: 14px;
+  font-family: sans-serif;
+}
