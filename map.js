@@ -200,6 +200,16 @@
             if (mouse) {
                 var mouse2 = [d3.event.pageX, d3.event.pageY];
                 rotation2 = [rotation[0] + (mouse2[0] - mouse[0]) / 6, rotation[1], rotation[2]];
+                var yaw = mouse2[0] - mouse[0];
+                var pitch = mouse2[1] - mouse[1];
+
+                if (pitch > 30) {
+                    pitch = 30;
+                } else if (pitch < -30) {
+                    pitch = -30;
+                }
+
+                rotation2 = [rotation[0] + yaw / 6, rotation[1] - pitch, rotation[2]];
                 projection.rotate(rotation2);
                 refresh(svg, projection, path);
             }
