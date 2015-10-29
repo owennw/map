@@ -3,6 +3,14 @@
   stroke-width: 0.3;
 }
 
+g:hover {
+  cursor: grab;
+}
+
+g.drag {
+  cursor: grabbing;
+}
+
 .graticule {
   fill: none;
   stroke: black;
@@ -24,10 +32,10 @@
   opacity: .7;
 }
 
-.country:hover {
-  fill: #dc4a29;
-  stroke-width: 1px;
-}
+  .country:hover {
+    fill: #dc4a29;
+    stroke-width: 1px;
+  }
 
 .tooltip {
   position: absolute;

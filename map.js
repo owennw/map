@@ -1,7 +1,8 @@
 ﻿var map = function() {
 
     var projection = null,
-        graticule = null,
+        includeGraticule = null,
+        includeTooltip = null,
         pointRadius = 0;
 
     var width = 1600,
@@ -13,36 +14,44 @@
     var map = function(world) {
 
         projection.translate([width / 2, height / 2]);
-        var path = d3.geo.path().projection(projection).pointRadius(pointRadius),
-        tooltip = d3.select('body').append('div').attr('class', 'tooltip');
 
         placeShadow(svg, projection, 880, 835);
-        fillOcean(svg, path);
 
-        var countries = topojson.feature(world, world.objects.countries_110),
-            capitals = topojson.feature(world, world.objects.cities),
-            displayCountries = svg.selectAll('land').data(countries.features),
-            displayCapitals = svg.selectAll('city').data(capitals.features);
+        var mouse = null, rotation = null;
 
-        displayCountries.enter()
+        var path = d3.geo.path().projection(projection).pointRadius(pointRadius),
+            tooltip = d3.select('body').append('div').attr('class', 'tooltip'),
+            countries = topojson.feature(world, world.objects.countries_110),
+            capitals = topojson.feature(world, world.objects.cities_110),
+            globe = svg.append('g');
+        displayCountries = globe.selectAll('land').data(countries.features),
+        displayCapitals = globe.selectAll('city').data(capitals.features);
+
+        fillOcean(globe, path);
+
+        var x = displayCountries.enter()
             .append('path')
             .attr('d', path)
-            .attr('class', function(d) { return 'country ' + d.id; })
-            .on('mouseover', function(d) {
-                tooltip.text(d.properties.name)
-                    .style('display', 'block')
-                    .style('opacity', 1);
-            })
-            .on('mouseout', function(d) {
-                tooltip
-                    .style('display', 'none')
-                    .style('opacity', 0);
-            })
-            .on('mousemove', function(d) {
-                tooltip
-                    .style('left', (d3.event.pageX + 9) + 'px')
-                    .style('top', (d3.event.pageY - 20) + 'px');
-            });
+            .attr('class', 'country');
+
+        if (includeTooltip) {
+            x
+                .on('mouseover', function(d) {
+                    tooltip.text(d.properties.name)
+                        .style('display', 'block')
+                        .style('opacity', 1);
+                })
+                .on('mouseout', function(d) {
+                    tooltip
+                        .style('display', 'none')
+                        .style('opacity', 0);
+                })
+                .on('mousemove', function(d) {
+                    tooltip
+                        .style('left', (d3.event.pageX + 9) + 'px')
+                        .style('top', (d3.event.pageY - 20) + 'px');
+                });
+        }
 
         var capitalGroups = displayCapitals.enter().append('g');
         capitalGroups.append('path')
@@ -50,16 +59,16 @@
             .attr('class', 'city');
         capitalGroups.append('text')
             .attr('class', 'city-label')
-        positionLabels(svg, projection);
-        if (graticule) {
-            svg.append('path')
-                .datum(graticule)
+        positionLabels(globe, projection);
+        if (includeGraticule) {
+            globe.append('path')
+                .datum(d3.geo.graticule())
                 .attr('class', 'graticule')
                 .attr('d', path);
         }
 
-        function positionLabels(svg, projection) {
-            svg.selectAll('.city-label')
+        function positionLabels(globe, projection) {
+            globe.selectAll('.city-label')
                 .attr('transform', function(d) {
                     var coords = projection(d.geometry.coordinates);
                     return 'translate(' + coords[0] + ',' + coords[1] + ')';
@@ -119,10 +128,10 @@
                 .style('fill', 'url(#' + id + ')');
         }
 
-        function fillOcean(svg, path) {
+        function fillOcean(globe, path) {
             var id = 'ocean';
 
-            var ocean = svg.append('defs').append('radialGradient')
+            var ocean = globe.append('defs').append('radialGradient')
                 .attr('id', id)
                 .attr('cx', '35%')
                 .attr('cy', '20%');
@@ -137,14 +146,13 @@
                     'stop-color': "#9ac"
                 });
 
-            svg.append('path')
+            globe.append('path')
                 .datum({ type: 'Sphere' })
                 .attr('d', path)
                 .style('fill', 'url(#' + id + ')');
         }
 
         function refresh(svg, projection, path) {
-
             svg.selectAll('.country').attr('d', path);
             svg.selectAll('.city').attr('d', path);
             svg.selectAll('.graticule').attr('d', path);
@@ -152,11 +160,41 @@
         }
 
         setInterval(function() {
-            var rotation = projection.rotate();
-            rotation = [rotation[0] + 0.6, rotation[1], rotation[2]];
-            projection.rotate(rotation);
-            refresh(svg, projection, path);
-        }, 400);
+            // Stop rotating if the mouse is held down
+            if (mouse === null) {
+                rotation = projection.rotate();
+                rotation = [rotation[0] + 0.5, rotation[1], rotation[2]];
+                projection.rotate(rotation);
+                refresh(svg, projection, path);
+            }
+        }, 45);
+
+        d3.select(window)
+            .on('mousedown', mousedown)
+            .on('mousemove', mousemove)
+            .on('mouseup', mouseup);
+
+        function mousedown(e) {
+            globe.classed('drag', true);
+            mouse = [d3.event.pageX, d3.event.pageY];
+            rotation = projection.rotate();
+            d3.event.preventDefault();
+        }
+
+        function mousemove(e) {
+            if (mouse) {
+                var mouse2 = [d3.event.pageX, d3.event.pageY];
+                rotation2 = [rotation[0] + (mouse2[0] - mouse[0]) / 6, rotation[1], rotation[2]];
+                projection.rotate(rotation2);
+                refresh(svg, projection, path);
+            }
+        }
+
+        function mouseup(e) {
+            globe.classed('drag', false);
+            mouse = null;
+            rotation = null;
+        }
     };
 
     map.projection = function(p) {
@@ -168,7 +206,7 @@
     }
 
     map.graticule = function() {
-        graticule = d3.geo.graticule();
+        includeGraticule = true;
         return map;
     }
 
@@ -177,6 +215,11 @@
             return pointRadius;
         }
         pointRadius = radius;
+        return map;
+    }
+
+    map.tooltip = function() {
+        includeTooltip = true;
         return map;
     }
 
@@ -194,11 +237,12 @@
         var projection = d3.geo.orthographic()
             .scale(400)
             .clipAngle(90)
-            .rotate([0, 0, axialTilt]); // yaw, pitch, roll
+            .rotate([-60, 0, axialTilt]); // yaw, pitch, roll
 
         map()
             .projection(projection)
             .pointRadius(1.5)
+            .tooltip()
             .graticule()(world);
     });
 }());
