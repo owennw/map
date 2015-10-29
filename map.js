@@ -12,87 +12,25 @@
             .attr('height', height);
 
     var map = function(world) {
+        var mouse = null,
+            rotation = null;
 
         projection.translate([width / 2, height / 2]);
-
         placeShadow(svg, projection, 880, 835);
 
-        var mouse = null, rotation = null;
-
         var path = d3.geo.path().projection(projection).pointRadius(pointRadius),
-            tooltip = d3.select('body').append('div').attr('class', 'tooltip'),
-            countries = topojson.feature(world, world.objects.countries_110),
-            capitals = topojson.feature(world, world.objects.cities_110),
             globe = svg.append('g');
-        displayCountries = globe.selectAll('land').data(countries.features),
-        displayCapitals = globe.selectAll('city').data(capitals.features);
 
-        fillOcean(globe, path);
+        var dataParser = parser(world, globe);
+        renderOcean(globe, path);
+        renderCountries(dataParser, path);
+        renderCities(dataParser, path, globe, projection);
 
-        var x = displayCountries.enter()
-            .append('path')
-            .attr('d', path)
-            .attr('class', 'country');
-
-        if (includeTooltip) {
-            x
-                .on('mouseover', function(d) {
-                    tooltip.text(d.properties.name)
-                        .style('display', 'block')
-                        .style('opacity', 1);
-                })
-                .on('mouseout', function(d) {
-                    tooltip
-                        .style('display', 'none')
-                        .style('opacity', 0);
-                })
-                .on('mousemove', function(d) {
-                    tooltip
-                        .style('left', (d3.event.pageX + 9) + 'px')
-                        .style('top', (d3.event.pageY - 20) + 'px');
-                });
-        }
-
-        var capitalGroups = displayCapitals.enter().append('g');
-        capitalGroups.append('path')
-            .attr('d', path)
-            .attr('class', 'city');
-        capitalGroups.append('text')
-            .attr('class', 'city-label')
-        positionLabels(globe, projection);
         if (includeGraticule) {
             globe.append('path')
                 .datum(d3.geo.graticule())
                 .attr('class', 'graticule')
                 .attr('d', path);
-        }
-
-        function positionLabels(globe, projection) {
-            globe.selectAll('.city-label')
-                .attr('transform', function(d) {
-                    var coords = projection(d.geometry.coordinates);
-                    return 'translate(' + coords[0] + ',' + coords[1] + ')';
-                })
-                .attr('text-anchor', function(d) {
-                    // Specifies where the city text is in relation to its point
-                    // map left -> text left
-                    // map middle - text middle
-                    // map right -> text right
-                    var x = projection(d.geometry.coordinates)[0];
-                    return x < width / 2 - 100 ? 'end' :
-                        x < width / 2 + 100 ? 'middle' :
-                        'start';
-                })
-                .style('display', function(d) {
-                    // Prevents the cities not visible on the globe from appearing
-                    var centerPos = projection.invert([width / 2, height / 2]);
-                    var arc = d3.geo.greatArc();
-                    var d = arc.distance({ source: d.geometry.coordinates, target: centerPos });
-
-                    // 1.57 is ~ half of pi
-                    return (d > 1.57) ? 'none' : 'inline';
-                })
-                .text(function(d) { return d.properties.name; });
         }
 
         function placeShadow(svg, projection, cx, cy) {
@@ -128,7 +66,7 @@
                 .style('fill', 'url(#' + id + ')');
         }
 
-        function fillOcean(globe, path) {
+        function renderOcean(globe, path) {
             var id = 'ocean';
 
             var ocean = globe.append('defs').append('radialGradient')
@@ -152,6 +90,74 @@
                 .style('fill', 'url(#' + id + ')');
         }
 
+        function renderCountries(parser, path) {
+            var displayCountries = parser('countries_110', 'land');
+            displayCountries.enter()
+                .append('path')
+                .attr('d', path)
+                .attr('class', 'country');
+
+            if (includeTooltip) {
+                var tooltip = d3.select('body').append('div').attr('class', 'tooltip');
+                displayCountries
+                    .on('mouseover', function(d) {
+                        tooltip.text(d.properties.name)
+                            .style('display', 'block')
+                            .style('opacity', 1);
+                    })
+                    .on('mouseout', function(d) {
+                        tooltip
+                            .style('display', 'none')
+                            .style('opacity', 0);
+                    })
+                    .on('mousemove', function(d) {
+                        tooltip
+                            .style('left', (d3.event.pageX + 9) + 'px')
+                            .style('top', (d3.event.pageY - 20) + 'px');
+                    });
+            }
+        }
+
+        function renderCities(parser, path, globe, projection) {
+            var displayCapitals = parser('cities_110', 'city');
+            var capitalGroups = displayCapitals.enter().append('g');
+
+            capitalGroups.append('path')
+                .attr('d', path)
+                .attr('class', 'city');
+            capitalGroups.append('text')
+                .attr('class', 'city-label')
+            positionLabels(globe, projection);
+        }
+
+        function positionLabels(globe, projection) {
+            globe.selectAll('.city-label')
+                .attr('transform', function(d) {
+                    var coords = projection(d.geometry.coordinates);
+                    return 'translate(' + coords[0] + ',' + coords[1] + ')';
+                })
+                .attr('text-anchor', function(d) {
+                    // Specifies where the city text is in relation to its point
+                    // map left -> text left
+                    // map middle - text middle
+                    // map right -> text right
+                    var x = projection(d.geometry.coordinates)[0];
+                    return x < width / 2 - 100 ? 'end' :
+                        x < width / 2 + 100 ? 'middle' :
+                        'start';
+                })
+                .style('display', function(d) {
+                    // Prevents the cities not visible on the globe from appearing
+                    var centerPos = projection.invert([width / 2, height / 2]);
+                    var arc = d3.geo.greatArc();
+                    var d = arc.distance({ source: d.geometry.coordinates, target: centerPos });
+
+                    // 1.57 is ~ half of pi
+                    return (d > 1.57) ? 'none' : 'inline';
+                })
+                .text(function(d) { return d.properties.name; });
+        }
+
         function refresh(svg, projection, path) {
             svg.selectAll('.country').attr('d', path);
             svg.selectAll('.city').attr('d', path);
@@ -168,6 +174,15 @@
                 refresh(svg, projection, path);
             }
         }, 45);
+
+        function parser(world, globe) {
+            return function(fieldName, selectionName) {
+                var items = topojson.feature(world, world.objects[fieldName]);
+                var displayItems = globe.selectAll(selectionName).data(items.features);
+
+                return displayItems;
+            }
+        }
 
         d3.select(window)
             .on('mousedown', mousedown)
